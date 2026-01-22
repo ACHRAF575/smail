@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROOT ACCESS // V2.3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <script src="products.js"></script>
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --term-green: #33ff33;
+            --term-dim: #008f11;
+            --term-blue: #33ccff; /* New color for Edit mode */
+            --white: #eeeeee;
+            --story-color: #d62976; 
+        }
+
+        body { 
+            font-family: 'Fira Code', monospace; 
+            background-color: var(--bg); 
+            color: var(--term-green); 
+            padding: 20px;
+            margin: 0;
+        }
+
+        * { box-sizing: border-box; }
+
+        h1 { 
+            text-align: center; 
+            border-bottom: 2px dashed var(--term-green); 
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container { 
+            display: flex; gap: 30px; 
+            max-width: 1400px; margin: 0 auto;
+        }
+        
+        .left-col { flex: 1; }
+        .right-col { flex: 2; }
+
+        .terminal-window {
+            border: 1px solid var(--term-green);
+            padding: 15px;
+            margin-bottom: 20px;
+            background: #000;
+            position: relative;
+            transition: border-color 0.3s;
+        }
+
+        /* Edit Mode Styles */
+        .terminal-window.edit-mode {
+            border-color: var(--term-blue);
+            box-shadow: 0 0 10px rgba(51, 204, 255, 0.2);
+        }
+        .edit-mode .win-title { color: var(--term-blue); }
+        .edit-mode input, .edit-mode select, .edit-mode textarea { color: var(--term-blue); border-bottom-color: var(--term-blue); }
+        .edit-mode button[type="submit"] { background: var(--term-blue); color: #000; }
+
+        .terminal-window.story-mode { border-color: var(--story-color); }
+        
+        .win-title {
+            position: absolute;
+            top: -10px; left: 10px;
+            background: var(--bg);
+            padding: 0 10px;
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .story-mode .win-title { color: var(--story-color); }
+
+        label { display: block; margin: 15px 0 5px; color: var(--white); font-size: 0.8rem; }
+        
+        input, select, textarea { 
+            width: 100%; 
+            background: #111; 
+            border: none;
+            border-bottom: 1px solid var(--term-dim);
+            color: var(--term-green);
+            padding: 8px;
+            font-family: 'Fira Code', monospace;
+        }
+        input:focus, textarea:focus { 
+            outline: none; 
+            border-bottom-color: var(--term-green);
+            background: #1a1a1a;
+        }
+
+        button {
+            width: 100%;
+            background: var(--term-green);
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 15px;
+        }
+        button:hover { opacity: 0.9; }
+        
+        .btn-story { background-color: var(--story-color); color: white; }
+        .btn-story:hover { background-color: #ff5c9e; }
+
+        .btn-save { 
+            background: transparent; 
+            border: 2px solid var(--term-green); 
+            color: var(--term-green);
+        }
+        .btn-save:hover { background: var(--term-green); color: black; }
+
+        .btn-cancel {
+            background: #333; color: #fff; display: none; margin-top: 10px;
+        }
+
+        .log-item {
+            border-left: 2px solid var(--term-dim);
+            padding-left: 10px;
+            margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            background: rgba(255,255,255,0.02);
+            padding: 10px;
+        }
+        .log-item.story-item { border-left-color: var(--story-color); }
+
+        .log-img { width: 50px; height: 50px; object-fit: cover; border: 1px solid #333; margin-right: 10px; }
+        
+        .actions { display: flex; gap: 5px; flex-direction: column; }
+
+        .action-btn { 
+            width: auto; padding: 5px 10px; font-size: 0.7rem; margin:0; text-align: center;
+        }
+        .del-btn { background: #ff3333; color: black; }
+        .del-btn:hover { background: red; color: white; }
+        
+        .edit-btn { background: var(--term-blue); color: black; }
+        .edit-btn:hover { background: #00aadd; color: white; }
+
+        @media (max-width: 800px) { .container { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+    <h1>> SYSTEM_ADMIN_PANEL_V2.3_</h1>
+
+    <div class="container">
+        
+        <!-- LEFT COLUMN: Forms -->
+        <div class="left-col">
+            
+            <!-- PRODUCT FORM -->
+            <div id="productWin" class="terminal-window">
+                <span class="win-title" id="formTitle">CMD:// ADD_PRODUCT</span>
+                <form id="addForm">
+                    <!-- Hidden ID field to track if we are editing -->
+                    <input type="hidden" id="pId">
+
+                    <label>> PRODUCT_NAME:</label>
+                    <input type="text" id="pName" placeholder="ENTER NAME..." required>
+                    
+                    <label>> CATEGORY_SELECT:</label>
+                    <select id="pCategory">
+                        <option value="gowns">EVENING_GOWNS</option>
+                        <option value="fabrics">FABRICS_HIJABS</option>
+                    </select>
+
+                    <label>> BADGE_STATUS:</label>
+                    <select id="pBadge">
+                        <option value="">NONE</option>
+                        <option value="new">NEW ARRIVAL (GREEN)</option>
+                        <option value="sale">SALE (RED)</option>
+                        <option value="sold">SOLD OUT (GREY)</option>
+                    </select>
+                    
+                    <label>> IMAGE_SOURCE:</label>
+                    <input type="text" id="pImage" placeholder="HTTPS://..." required>
+                    
+                    <label>> DESCRIPTION_DATA:</label>
+                    <textarea id="pDesc" rows="2" placeholder="DETAILS..."></textarea>
+                    
+                    <label>> PRICE_VAL (OPTIONAL):</label>
+                    <input type="text" id="pPrice" placeholder="$0.00">
+                    
+                    <button type="submit" id="submitBtn">>> EXECUTE_ADD_COMMAND</button>
+                    <button type="button" id="cancelBtn" class="btn-cancel" onclick="resetForm()">[X] CANCEL EDIT</button>
+                </form>
+            </div>
+
+            <!-- STORY FORM -->
+            <div class="terminal-window story-mode">
+                <span class="win-title">CMD:// ADD_STORY (VIDEO)</span>
+                <form id="addStoryForm">
+                    <label style="color:var(--story-color)">> THUMBNAIL_IMG:</label>
+                    <input type="text" id="sThumb" placeholder="HTTPS://... (IMAGE)" required>
+                    
+                    <label style="color:var(--story-color)">> VIDEO_SOURCE (MP4):</label>
+                    <input type="text" id="sVideo" placeholder="HTTPS://... (MP4)" required>
+                    
+                    <button type="submit" class="btn-story">>> UPLOAD_TO_STORY_FEED</button>
+                </form>
+            </div>
+
+            <div class="terminal-window">
+                <span class="win-title">CMD:// CONFIG_SETTINGS</span>
+                <label>> STORE_NAME:</label> <input type="text" id="cfgName">
+                <label>> BANNER_IMG_URL:</label> <input type="text" id="cfgHeroImg">
+                <label>> BANNER_TITLE:</label> <input type="text" id="cfgHeroTitle">
+                <label>> BANNER_SUBTITLE:</label> <input type="text" id="cfgHeroSub">
+                <hr style="border: 1px dashed #333; margin: 15px 0;">
+                <label>> WHATSAPP_NUM:</label> <input type="text" id="cfgWhatsapp">
+                <label>> INSTAGRAM_ID:</label> <input type="text" id="cfgInsta">
+                <label>> FACEBOOK_ID:</label> <input type="text" id="cfgFb">
+                <label>> PHYSICAL_ADDR:</label> <input type="text" id="cfgAddress">
+                <input type="hidden" id="cfgPhone">
+                <input type="hidden" id="cfgEmail">
+            </div>
+
+            <button onclick="saveAll()" class="btn-save">>> COMPILE & DOWNLOAD_JS</button>
+        </div>
+
+        <!-- RIGHT COLUMN: Output -->
+        <div class="right-col">
+            <div class="terminal-window">
+                <span class="win-title">LOG:// CURRENT_INVENTORY</span>
+                <div id="productList">Reading memory...</div>
+            </div>
+            
+            <div class="terminal-window story-mode">
+                <span class="win-title">LOG:// ACTIVE_STORIES</span>
+                <div id="storyList">Scanning feed...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Data
+        let data = window.storeData || { config: {}, products: [], stories: [] };
+        if(!data.stories) data.stories = []; 
+        
+        const listDiv = document.getElementById('productList');
+        const storyListDiv = document.getElementById('storyList');
+        
+        // Load Settings
+        const ids = ['cfgName','cfgHeroImg','cfgHeroTitle','cfgHeroSub','cfgWhatsapp','cfgInsta','cfgFb','cfgAddress'];
+        const map = ['storeName','heroImage','heroTitle','heroSubtitle','whatsapp','instagram','facebook','address'];
+        
+        ids.forEach((id, i) => {
+            document.getElementById(id).value = data.config[map[i]] || "";
+        });
+        document.getElementById('cfgPhone').value = data.config.phone || "";
+        document.getElementById('cfgEmail').value = data.config.email || "";
+
+        function render() {
+            // Render Products
+            listDiv.innerHTML = '';
+            data.products.slice().reverse().forEach((p, index) => {
+                const originalIndex = data.products.length - 1 - index;
+                listDiv.innerHTML += `
+                    <div class="log-item">
+                        <div style="display:flex; align-items:center;">
+                            <img src="${p.image}" class="log-img">
+                            <div class="log-data">
+                                <strong>${p.name.toUpperCase()}</strong> <br>
+                                <span style="font-size:0.7rem;">TYPE: ${p.category} | BADGE: ${p.badge || 'NONE'} | ID: ${p.id}</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="action-btn edit-btn" onclick="startEdit(${p.id})">EDIT</button>
+                            <button class="action-btn del-btn" onclick="delItem('prod', ${originalIndex})">DEL</button>
+                        </div>
+                    </div>
+                `;
+            });
+            if(data.products.length === 0) listDiv.innerHTML = ">> PRODUCT MEMORY EMPTY";
+
+            // Render Stories
+            storyListDiv.innerHTML = '';
+            data.stories.slice().reverse().forEach((s, index) => {
+                const originalIndex = data.stories.length - 1 - index;
+                storyListDiv.innerHTML += `
+                    <div class="log-item story-item">
+                        <div style="display:flex; align-items:center;">
+                            <img src="${s.thumb}" class="log-img" style="border-radius:50%">
+                            <div class="log-data">
+                                <strong style="color:var(--story-color)">STORY_ID: ${s.id}</strong> <br>
+                                <span style="font-size:0.7rem;">VIDEO: ${s.video.substring(0,30)}...</span>
+                            </div>
+                        </div>
+                        <button class="action-btn del-btn" onclick="delItem('story', ${originalIndex})">DEL</button>
+                    </div>
+                `;
+            });
+            if(data.stories.length === 0) storyListDiv.innerHTML = ">> NO ACTIVE STORIES";
+        }
+
+        // --- EDIT LOGIC ---
+        window.startEdit = (id) => {
+            const p = data.products.find(prod => prod.id === id);
+            if(!p) return;
+
+            // Populate Form
+            document.getElementById('pId').value = p.id;
+            document.getElementById('pName').value = p.name;
+            document.getElementById('pCategory').value = p.category;
+            document.getElementById('pBadge').value = p.badge || "";
+            document.getElementById('pImage').value = p.image;
+            document.getElementById('pDesc').value = p.description;
+            document.getElementById('pPrice').value = p.price || "";
+
+            // Visual Changes
+            document.getElementById('productWin').classList.add('edit-mode');
+            document.getElementById('formTitle').innerText = "CMD:// EDIT_PRODUCT (ID: " + p.id + ")";
+            document.getElementById('submitBtn').innerText = ">> UPDATE_MODIFICATION";
+            document.getElementById('cancelBtn').style.display = 'block';
+
+            // Scroll up
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.resetForm = () => {
+            document.getElementById('addForm').reset();
+            document.getElementById('pId').value = ""; // Clear ID
+            
+            // Reset Visuals
+            document.getElementById('productWin').classList.remove('edit-mode');
+            document.getElementById('formTitle').innerText = "CMD:// ADD_PRODUCT";
+            document.getElementById('submitBtn').innerText = ">> EXECUTE_ADD_COMMAND";
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        // Add OR Edit Product
+        document.getElementById('addForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('pId').value;
+            const newObj = {
+                id: id ? parseInt(id) : Date.now(), // Keep old ID if editing, else new
+                name: document.getElementById('pName').value,
+                category: document.getElementById('pCategory').value,
+                badge: document.getElementById('pBadge').value,
+                image: document.getElementById('pImage').value,
+                description: document.getElementById('pDesc').value,
+                price: document.getElementById('pPrice').value
+            };
+
+            if(id) {
+                // UPDATE
+                const index = data.products.findIndex(p => p.id == id);
+                if(index > -1) {
+                    data.products[index] = newObj;
+                }
+            } else {
+                // ADD
+                data.products.push(newObj);
+            }
+
+            render();
+            resetForm();
+        });
+
+        // Add Story
+        document.getElementById('addStoryForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            data.stories.push({
+                id: Date.now(),
+                thumb: document.getElementById('sThumb').value,
+                video: document.getElementById('sVideo').value,
+                seen: false
+            });
+            render();
+            document.getElementById('addStoryForm').reset();
+        });
+
+        window.delItem = (type, idx) => {
+            if(confirm("CONFIRM_DELETION? [Y/N]")) {
+                if(type === 'prod') data.products.splice(idx, 1);
+                if(type === 'story') data.stories.splice(idx, 1);
+                render();
+            }
+        };
+
+        window.saveAll = () => {
+            ids.forEach((id, i) => {
+                data.config[map[i]] = document.getElementById(id).value;
+            });
+            data.config.phone = document.getElementById('cfgPhone').value;
+            data.config.email = document.getElementById('cfgEmail').value;
+
+            const content = "window.storeData = " + JSON.stringify(data, null, 2) + ";";
+            const blob = new Blob([content], { type: "text/javascript" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "products.js";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            alert(">> FILE GENERATED. OVERWRITE 'products.js' TO APPLY UPDATES.");
+        };
+
+        render();
+    </script>
+</body>
+</html>
